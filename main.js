@@ -32,12 +32,16 @@ function openSettings(onSaved) {
     title: "OpenClaw", parent: mainWindow, modal: !!mainWindow,
     webPreferences: { nodeIntegration: true, contextIsolation: false },
   });
-  settingsWindow.loadFile(path.join(__dirname, "settings.html"));;
-  settingsWindow.on("closed", () => { settingsWindow = null; });
-  ipcMain.once("save-config", (_, config) => {
+  settingsWindow.loadFile(path.join(__dirname, "settings.html"));
+  const onSave = (_, config) => {
     saveConfig(config);
     settingsWindow && settingsWindow.close();
     if (onSaved) onSaved(config);
+  };
+  ipcMain.on("save-config", onSave);
+  settingsWindow.on("closed", () => {
+    ipcMain.removeListener("save-config", onSave);
+    settingsWindow = null;
   });
 }
 
@@ -48,6 +52,10 @@ function createWindow(config) {
   });
   mainWindow.on("page-title-updated", (e) => e.preventDefault());
   mainWindow.loadURL(getTargetURL(config));
+
+  mainWindow.webContents.on("did-fail-load", () => {
+    openSettings((c) => mainWindow && mainWindow.loadURL(getTargetURL(c)));
+  });
 
   mainWindow.on("close", function (e) {
     if (!willQuitApp) {

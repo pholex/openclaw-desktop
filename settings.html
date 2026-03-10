@@ -113,6 +113,7 @@
             const token = u.searchParams.get('token') || '';
             const host = u.origin;
             ipcRenderer.send('save-config', {host, token});
+            window.close();
         } catch(e) { alert('链接格式不正确'); }
     }
 </script>
