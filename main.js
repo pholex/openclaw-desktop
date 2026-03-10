@@ -3,16 +3,14 @@ const fs = require("fs");
 const path = require("path");
 
 let mainWindow;
-let settingsWindow;
 let willQuitApp = false;
+let loaded = false;
 
 const CONFIG_PATH = path.join(app.getPath("userData"), "config.json");
 
 function loadConfig() {
   try {
-    if (fs.existsSync(CONFIG_PATH)) {
-      return JSON.parse(fs.readFileSync(CONFIG_PATH, "utf8"));
-    }
+    if (fs.existsSync(CONFIG_PATH)) return JSON.parse(fs.readFileSync(CONFIG_PATH, "utf8"));
   } catch (e) {}
   return null;
 }
@@ -25,51 +23,46 @@ function getTargetURL(config) {
   return `${config.host}/?token=${config.token}`;
 }
 
-function openSettings(onSaved) {
-  if (settingsWindow) { settingsWindow.focus(); return; }
-  settingsWindow = new BrowserWindow({
-    width: 680, height: 520, resizable: false,
-    title: "OpenClaw", parent: mainWindow, modal: !!mainWindow,
-    webPreferences: { nodeIntegration: true, contextIsolation: false },
-  });
-  settingsWindow.loadFile(path.join(__dirname, "settings.html"));
-  settingsWindow.webContents.on("did-finish-load", () => {
+function showSettings() {
+  loaded = false;
+  mainWindow.loadFile(path.join(__dirname, "settings.html"));
+  mainWindow.webContents.once("did-finish-load", () => {
     const config = loadConfig();
-    if (config) settingsWindow.webContents.send("load-config", getTargetURL(config));
-  });
-  const onSave = (_, config) => {
-    saveConfig(config);
-    settingsWindow && settingsWindow.close();
-    if (onSaved) onSaved(config);
-  };
-  ipcMain.on("save-config", onSave);
-  settingsWindow.on("closed", () => {
-    ipcMain.removeListener("save-config", onSave);
-    settingsWindow = null;
-    if (!loadConfig()) { willQuitApp = true; app.quit(); }
+    if (config) mainWindow.webContents.send("load-config", getTargetURL(config));
   });
 }
 
-function createWindow(config) {
-  let currentConfig = config;
+function connectToService(config) {
+  const url = getTargetURL(config);
+  mainWindow.loadURL(url);
+}
+
+function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 1400, height: 900, title: "OpenClaw",
-    webPreferences: { nodeIntegration: false, contextIsolation: true },
+    width: 1400, height: 900, title: "OpenClaw-Desktop",
+    webPreferences: { nodeIntegration: true, contextIsolation: false },
   });
   mainWindow.on("page-title-updated", (e) => e.preventDefault());
-  mainWindow.loadURL(getTargetURL(config));
 
-  mainWindow.webContents.on("did-fail-load", (_e, _code, _desc, url) => {
-    if (url === getTargetURL(currentConfig)) {
-      openSettings((c) => {
-        currentConfig = c;
-        mainWindow && mainWindow.loadURL(getTargetURL(c));
-      });
-    }
+  mainWindow.webContents.on("did-finish-load", () => {
+    const url = mainWindow.webContents.getURL();
+    if (!url.startsWith("file://")) loaded = true;
   });
 
-  mainWindow.on("close", function (e) {
+  mainWindow.webContents.on("did-fail-load", () => {
+    showSettings();
+  });
+
+  const config = loadConfig();
+  if (config) {
+    connectToService(config);
+  } else {
+    showSettings();
+  }
+
+  mainWindow.on("close", (e) => {
     if (!willQuitApp) {
+      if (!loaded) return; // 设置页面直接关闭
       e.preventDefault();
       dialog.showMessageBox(mainWindow, {
         type: "question", buttons: ["确认", "取消"],
@@ -82,37 +75,22 @@ function createWindow(config) {
 
   const menu = Menu.buildFromTemplate([{
     label: "文件", submenu: [
-      { label: "设置", accelerator: "CmdOrCtrl+,", click: () => openSettings((c) => mainWindow && mainWindow.loadURL(getTargetURL(c))) },
+      { label: "设置", accelerator: "CmdOrCtrl+,", click: () => showSettings() },
       { label: "刷新", accelerator: "CmdOrCtrl+R", click: () => mainWindow && mainWindow.reload() },
       { label: "开发者工具", accelerator: "CmdOrCtrl+Shift+I", click: () => mainWindow && mainWindow.webContents.toggleDevTools() },
       { type: "separator" },
-      { label: "退出", accelerator: "Command+Q", click: () => {
-        dialog.showMessageBox(mainWindow, {
-          type: "question", buttons: ["确认", "取消"],
-          title: "确认退出", message: "确定要退出应用吗?",
-          defaultId: 0, cancelId: 1,
-        }).then((r) => { if (r.response === 0) { willQuitApp = true; app.quit(); } });
-      }},
+      { label: "退出", accelerator: "Command+Q", click: () => { willQuitApp = true; app.quit(); } },
     ],
   }]);
   Menu.setApplicationMenu(menu);
 }
 
-app.whenReady().then(() => {
-  const config = loadConfig();
-  if (config) {
-    createWindow(config);
-  } else {
-    openSettings((c) => createWindow(c));
-  }
+ipcMain.on("save-config", (_, config) => {
+  saveConfig(config);
+  connectToService(config);
 });
 
+app.whenReady().then(createWindow);
 app.on("window-all-closed", () => { if (process.platform !== "darwin") app.quit(); });
-app.on("activate", () => {
-  if (mainWindow === null) {
-    const c = loadConfig();
-    if (c) createWindow(c);
-    else openSettings((c) => createWindow(c));
-  }
-});
+app.on("activate", () => { if (!mainWindow) createWindow(); });
 app.on("before-quit", () => { willQuitApp = true; });
