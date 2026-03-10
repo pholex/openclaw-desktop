@@ -107,6 +107,7 @@
 </div>
 <script>
     const {ipcRenderer} = require('electron');
+    ipcRenderer.on('load-config', (_, url) => { document.getElementById('url').value = url; });
     function save() {
         try {
             const u = new URL(document.getElementById('url').value.trim());

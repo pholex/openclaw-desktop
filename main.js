@@ -33,6 +33,10 @@ function openSettings(onSaved) {
     webPreferences: { nodeIntegration: true, contextIsolation: false },
   });
   settingsWindow.loadFile(path.join(__dirname, "settings.html"));
+  settingsWindow.webContents.on("did-finish-load", () => {
+    const config = loadConfig();
+    if (config) settingsWindow.webContents.send("load-config", getTargetURL(config));
+  });
   const onSave = (_, config) => {
     saveConfig(config);
     settingsWindow && settingsWindow.close();
@@ -42,10 +46,12 @@ function openSettings(onSaved) {
   settingsWindow.on("closed", () => {
     ipcMain.removeListener("save-config", onSave);
     settingsWindow = null;
+    if (!loadConfig()) { willQuitApp = true; app.quit(); }
   });
 }
 
 function createWindow(config) {
+  let currentConfig = config;
   mainWindow = new BrowserWindow({
     width: 1400, height: 900, title: "OpenClaw",
     webPreferences: { nodeIntegration: false, contextIsolation: true },
@@ -53,8 +59,13 @@ function createWindow(config) {
   mainWindow.on("page-title-updated", (e) => e.preventDefault());
   mainWindow.loadURL(getTargetURL(config));
 
-  mainWindow.webContents.on("did-fail-load", () => {
-    openSettings((c) => mainWindow && mainWindow.loadURL(getTargetURL(c)));
+  mainWindow.webContents.on("did-fail-load", (_e, _code, _desc, url) => {
+    if (url === getTargetURL(currentConfig)) {
+      openSettings((c) => {
+        currentConfig = c;
+        mainWindow && mainWindow.loadURL(getTargetURL(c));
+      });
+    }
   });
 
   mainWindow.on("close", function (e) {
@@ -97,5 +108,11 @@ app.whenReady().then(() => {
 });
 
 app.on("window-all-closed", () => { if (process.platform !== "darwin") app.quit(); });
-app.on("activate", () => { if (mainWindow === null) { const c = loadConfig(); if (c) createWindow(c); } });
+app.on("activate", () => {
+  if (mainWindow === null) {
+    const c = loadConfig();
+    if (c) createWindow(c);
+    else openSettings((c) => createWindow(c));
+  }
+});
 app.on("before-quit", () => { willQuitApp = true; });
