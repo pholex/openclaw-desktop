@@ -9,14 +9,25 @@ permissions:
   contents: write
 
 jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release create ${{ github.ref_name }} --title "${{ github.ref_name }}" --generate-notes || true
+
   build:
+    needs: create-release
     strategy:
       matrix:
         include:
           - os: macos-latest
             cmd: build
+            asset: "dist/*.dmg"
           - os: windows-latest
             cmd: build:win
+            asset: "dist/*.exe"
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -25,9 +36,6 @@ jobs:
           node-version: 20
       - run: npm install
       - run: npm run ${{ matrix.cmd }}
-        env:
+      - env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - uses: actions/upload-artifact@v4
-        with:
-          name: build-${{ matrix.os }}
-          path: dist/
+        run: gh release upload ${{ github.ref_name }} ${{ matrix.asset }} --clobber

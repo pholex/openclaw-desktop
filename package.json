@@ -5,23 +5,28 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "build": "electron-builder --mac",
-    "build:win": "electron-builder --win",
-    "build:all": "electron-builder --mac --win"
+    "build": "electron-builder --mac --publish never",
+    "build:win": "electron-builder --win --publish never",
+    "build:all": "electron-builder --mac --win --publish never"
   },
   "build": {
     "appId": "com.openclaw.app",
     "productName": "OpenClaw",
     "mac": {
-      "target": "dmg"
+      "target": "dmg",
+      "artifactName": "${productName}-Desktop-${version}-${arch}.${ext}"
     },
     "win": {
-      "target": "portable"
+      "target": "portable",
+      "artifactName": "${productName}-Desktop-${version}.${ext}"
     },
     "files": [
       "main.js",
       "package.json"
-    ]
+    ],
+    "generateUpdatesFilesForAllChannels": false,
+    "publish": null
+
   },
   "devDependencies": {
     "electron": "^35.7.0",
