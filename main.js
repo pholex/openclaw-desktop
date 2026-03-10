@@ -81,6 +81,11 @@ function createWindow() {
       { type: "separator" },
       { label: "退出", accelerator: "Command+Q", click: () => { willQuitApp = true; app.quit(); } },
     ],
+  }, {
+    label: "编辑", submenu: [
+      { role: "undo" }, { role: "redo" }, { type: "separator" },
+      { role: "cut" }, { role: "copy" }, { role: "paste" }, { role: "selectAll" },
+    ],
   }]);
   Menu.setApplicationMenu(menu);
 }
