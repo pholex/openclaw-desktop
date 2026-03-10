@@ -15,7 +15,8 @@
     "mac": {
       "target": "dmg",
       "artifactName": "${productName}-${version}-${arch}.${ext}",
-      "icon": "icon.icns"
+      "icon": "icon.icns",
+      "notarize": true
     },
     "win": {
       "target": "portable",
