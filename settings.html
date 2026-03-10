@@ -6,21 +6,38 @@
     <link href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&f[]=satoshi@400,500,700&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; }
         body {
             font-family: 'Satoshi', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: #f8f9fa;
-            min-height: 100vh;
-            display: flex; align-items: center; justify-content: center;
+            display: flex; height: 100vh;
         }
+        .sidebar {
+            width: 60px; background: #fff; border-right: 1px solid #eee;
+            display: flex; flex-direction: column; align-items: center; padding-top: 20px; gap: 8px;
+            -webkit-app-region: drag;
+        }
+        .sidebar .tab {
+            width: 42px; height: 42px; border-radius: 12px; border: none; background: transparent;
+            cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            gap: 2px; transition: all 0.2s; color: #999; font-size: 0.6rem; -webkit-app-region: no-drag;
+        }
+        .sidebar .tab:hover { background: #f0f0f0; color: #333; }
+        .sidebar .tab.active { background: #fff0f0; color: #ff4d4d; }
+        .sidebar .tab svg { width: 20px; height: 20px; }
+        .main { flex: 1; display: flex; align-items: center; justify-content: center; position: relative; }
+        .page { display: none; width: 100%; height: 100%; }
+        .page.active { display: flex; align-items: center; justify-content: center; }
+        #deploy-page { display: none; background: #fff; }
+        #deploy-page.active { display: block; }
+        #deploy-page iframe { width: 100%; height: 100%; border: none; }
         .container {
-            max-width: 600px; width: 100%;
+            max-width: 540px; width: 100%;
             background: #fff; border-radius: 20px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.1);
             overflow: hidden; margin: 20px;
         }
-        .header {
-            padding: 30px; text-align: center;
-        }
+        .header { padding: 30px; text-align: center; }
         .lobster-wrap {
             display: block; width: 72px; height: 72px; margin: 0 auto 14px;
             animation: float 4s ease-in-out infinite;
@@ -36,8 +53,7 @@
         @keyframes clawSnap { 0%,85%,100% { transform: rotate(0); } 90% { transform: rotate(-8deg); } }
         .title-main {
             font-family: 'Clash Display', system-ui, sans-serif;
-            font-size: 2.4rem; font-weight: 700;
-            letter-spacing: -0.03em; line-height: 1;
+            font-size: 2.4rem; font-weight: 700; letter-spacing: -0.03em; line-height: 1;
             background: linear-gradient(135deg, #f0f4ff 0%, #ff4d4d 52%, #00e5cc 100%);
             background-size: 200% 200%; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
             background-clip: text; animation: gradientShift 6s ease infinite;
@@ -57,7 +73,6 @@
         }
         input:focus { outline: none; border-color: #6c5ce7; background: white; box-shadow: 0 0 0 3px rgba(108,92,231,0.1); }
         input::placeholder { color: #adb5bd; font-size: 0.85em; }
-        .hint { font-size: 0.78em; color: #999; margin-top: 5px; }
         .submit-btn {
             display: inline-flex; align-items: center; gap: 12px; padding: 12px 28px;
             border-radius: 50px; background: #fff; border: 1px solid #ddd;
@@ -72,42 +87,77 @@
     </style>
 </head>
 <body>
-<div class="container">
-    <div class="header">
-        <div class="lobster-wrap">
-            <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M60 10 C30 10 15 35 15 55 C15 75 30 95 45 100 L45 110 L55 110 L55 100 C55 100 60 102 65 100 L65 110 L75 110 L75 100 C90 95 105 75 105 55 C105 35 90 10 60 10Z" fill="url(#lg)" class="claw-body"/>
-                <path d="M20 45 C5 40 0 50 5 60 C10 70 20 65 25 55 C28 48 25 45 20 45Z" fill="url(#lg)" class="claw-left"/>
-                <path d="M100 45 C115 40 120 50 115 60 C110 70 100 65 95 55 C92 48 95 45 100 45Z" fill="url(#lg)" class="claw-right"/>
-                <path d="M45 15 Q35 5 30 8" stroke="#ff4d4d" stroke-width="2" stroke-linecap="round" class="antenna"/>
-                <path d="M75 15 Q85 5 90 8" stroke="#ff4d4d" stroke-width="2" stroke-linecap="round" class="antenna"/>
-                <circle cx="45" cy="35" r="6" fill="#050810" class="eye"/>
-                <circle cx="75" cy="35" r="6" fill="#050810" class="eye"/>
-                <circle cx="46" cy="34" r="2" fill="#00e5cc" class="eye-glow"/>
-                <circle cx="76" cy="34" r="2" fill="#00e5cc" class="eye-glow"/>
-                <defs><linearGradient id="lg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ff4d4d"/><stop offset="100%" stop-color="#991b1b"/></linearGradient></defs>
-            </svg>
+<div class="sidebar">
+    <button class="tab active" onclick="switchTab('settings')" title="设置">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+        <span>设置</span>
+    </button>
+    <button class="tab" onclick="switchTab('deploy')" title="部署">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 2L11 13"/><path d="M22 2L15 22L11 13L2 9L22 2Z"/>
+        </svg>
+        <span>部署</span>
+    </button>
+</div>
+<div class="main">
+    <div id="settings-page" class="page active">
+        <div class="container">
+            <div class="header">
+                <div class="lobster-wrap">
+                    <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M60 10 C30 10 15 35 15 55 C15 75 30 95 45 100 L45 110 L55 110 L55 100 C55 100 60 102 65 100 L65 110 L75 110 L75 100 C90 95 105 75 105 55 C105 35 90 10 60 10Z" fill="url(#lg)" class="claw-body"/>
+                        <path d="M20 45 C5 40 0 50 5 60 C10 70 20 65 25 55 C28 48 25 45 20 45Z" fill="url(#lg)" class="claw-left"/>
+                        <path d="M100 45 C115 40 120 50 115 60 C110 70 100 65 95 55 C92 48 95 45 100 45Z" fill="url(#lg)" class="claw-right"/>
+                        <path d="M45 15 Q35 5 30 8" stroke="#ff4d4d" stroke-width="2" stroke-linecap="round" class="antenna"/>
+                        <path d="M75 15 Q85 5 90 8" stroke="#ff4d4d" stroke-width="2" stroke-linecap="round" class="antenna"/>
+                        <circle cx="45" cy="35" r="6" fill="#050810" class="eye"/>
+                        <circle cx="75" cy="35" r="6" fill="#050810" class="eye"/>
+                        <circle cx="46" cy="34" r="2" fill="#00e5cc" class="eye-glow"/>
+                        <circle cx="76" cy="34" r="2" fill="#00e5cc" class="eye-glow"/>
+                        <defs><linearGradient id="lg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ff4d4d"/><stop offset="100%" stop-color="#991b1b"/></linearGradient></defs>
+                    </svg>
+                </div>
+                <h1><span class="title-main">OpenClaw</span></h1>
+                <p class="tagline">The AI that actually does things</p>
+            </div>
+            <div class="form-container">
+                <div class="form-group">
+                    <label>粘贴访问链接</label>
+                    <input id="url" placeholder="http://127.0.0.1:18789/?token=a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6" />
+                </div>
+                <div class="btn-wrap">
+                    <button class="submit-btn" onclick="save()">
+                        <span class="btn-badge">Connect</span>
+                        <span class="btn-title">连接到 OpenClaw</span>
+                        <span class="btn-arrow">→</span>
+                    </button>
+                </div>
+            </div>
         </div>
-        <h1><span class="title-main">OpenClaw</span></h1>
-        <p class="tagline">The AI that actually does things</p>
     </div>
-    <div class="form-container">
-        <div class="form-group">
-            <label>粘贴访问链接</label>
-            <input id="url" placeholder="http://127.0.0.1:18789/?token=a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6" />
-        </div>
-        <div class="btn-wrap">
-            <button class="submit-btn" onclick="save()">
-                <span class="btn-badge">Connect</span>
-                <span class="btn-title">连接到 OpenClaw</span>
-                <span class="btn-arrow">→</span>
-            </button>
-        </div>
+    <div id="deploy-page" class="page">
+        <iframe src="about:blank" sandbox="allow-same-origin allow-scripts allow-forms allow-popups"></iframe>
     </div>
 </div>
 <script>
     const {ipcRenderer} = require('electron');
     ipcRenderer.on('load-config', (_, url) => { document.getElementById('url').value = url; });
+
+    let deployLoaded = false;
+    function switchTab(tab) {
+        document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', i === (tab === 'settings' ? 0 : 1)));
+        document.getElementById('settings-page').classList.toggle('active', tab === 'settings');
+        document.getElementById('deploy-page').classList.toggle('active', tab === 'deploy');
+        if (tab === 'deploy' && !deployLoaded) {
+            const iframe = document.querySelector('#deploy-page iframe');
+            iframe.onerror = () => { iframe.style.display = 'none'; };
+            iframe.src = 'https://claw.openapi.click';
+            deployLoaded = true;
+        }
+    }
+
     function save() {
         try {
             const u = new URL(document.getElementById('url').value.trim());
