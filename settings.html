@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>OpenClaw</title>
+    <link href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&f[]=satoshi@400,500,700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Satoshi', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8f9fa;
+            min-height: 100vh;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .container {
+            max-width: 600px; width: 100%;
+            background: #fff; border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden; margin: 20px;
+        }
+        .header {
+            padding: 30px; text-align: center;
+        }
+        .lobster-wrap {
+            display: block; width: 72px; height: 72px; margin: 0 auto 14px;
+            animation: float 4s ease-in-out infinite;
+        }
+        .lobster-wrap svg { width: 100%; height: 100%; filter: drop-shadow(0 0 20px rgba(255,77,77,0.4)); }
+        .lobster-wrap .eye-glow { animation: blink 3s ease-in-out infinite; }
+        .lobster-wrap .antenna { animation: wiggle 2s ease-in-out infinite; transform-origin: center; }
+        .lobster-wrap .claw-left { animation: clawSnap 4s ease-in-out infinite; transform-origin: right center; }
+        .lobster-wrap .claw-right { animation: clawSnap 4s ease-in-out infinite 0.2s; transform-origin: left center; }
+        @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+        @keyframes blink { 0%,90%,100% { opacity: 1; } 95% { opacity: 0.3; } }
+        @keyframes wiggle { 0%,100% { transform: rotate(0); } 25% { transform: rotate(-3deg); } }
+        @keyframes clawSnap { 0%,85%,100% { transform: rotate(0); } 90% { transform: rotate(-8deg); } }
+        .title-main {
+            font-family: 'Clash Display', system-ui, sans-serif;
+            font-size: 2.4rem; font-weight: 700;
+            letter-spacing: -0.03em; line-height: 1;
+            background: linear-gradient(135deg, #f0f4ff 0%, #ff4d4d 52%, #00e5cc 100%);
+            background-size: 200% 200%; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text; animation: gradientShift 6s ease infinite;
+        }
+        @keyframes gradientShift { 0%,100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+        .tagline {
+            font-family: 'Clash Display', system-ui, sans-serif;
+            font-size: 0.95rem; font-weight: 500; color: #ff4d4d;
+            letter-spacing: 0.15em; text-transform: uppercase; margin-top: 10px;
+        }
+        .form-container { padding: 0 35px 35px; }
+        .form-group { margin-bottom: 18px; text-align: left; }
+        .form-group label { display: block; margin-bottom: 6px; font-weight: 600; color: #333; font-size: 0.9em; }
+        input {
+            width: 100%; padding: 14px 18px; border: 2px solid #e1e5e9;
+            border-radius: 12px; font-size: 0.9em; transition: all 0.3s; background: #f8f9fa;
+        }
+        input:focus { outline: none; border-color: #6c5ce7; background: white; box-shadow: 0 0 0 3px rgba(108,92,231,0.1); }
+        input::placeholder { color: #adb5bd; font-size: 0.85em; }
+        .hint { font-size: 0.78em; color: #999; margin-top: 5px; }
+        .submit-btn {
+            display: inline-flex; align-items: center; gap: 12px; padding: 12px 28px;
+            border-radius: 50px; background: #fff; border: 1px solid #ddd;
+            cursor: pointer; font-size: 1em; transition: all 0.3s; margin-top: 6px;
+        }
+        .submit-btn:hover { border-color: #ff4d4d; box-shadow: 0 4px 20px rgba(255,77,77,0.2); transform: translateY(-2px); }
+        .submit-btn .btn-badge { padding: 3px 8px; border-radius: 12px; background: #ff4d4d; color: #fff; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        .submit-btn .btn-title { font-size: 0.9rem; color: #333; font-weight: 500; }
+        .submit-btn .btn-arrow { color: #999; transition: color 0.2s; }
+        .submit-btn:hover .btn-arrow { color: #ff4d4d; }
+        .btn-wrap { text-align: center; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div class="lobster-wrap">
+            <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M60 10 C30 10 15 35 15 55 C15 75 30 95 45 100 L45 110 L55 110 L55 100 C55 100 60 102 65 100 L65 110 L75 110 L75 100 C90 95 105 75 105 55 C105 35 90 10 60 10Z" fill="url(#lg)" class="claw-body"/>
+                <path d="M20 45 C5 40 0 50 5 60 C10 70 20 65 25 55 C28 48 25 45 20 45Z" fill="url(#lg)" class="claw-left"/>
+                <path d="M100 45 C115 40 120 50 115 60 C110 70 100 65 95 55 C92 48 95 45 100 45Z" fill="url(#lg)" class="claw-right"/>
+                <path d="M45 15 Q35 5 30 8" stroke="#ff4d4d" stroke-width="2" stroke-linecap="round" class="antenna"/>
+                <path d="M75 15 Q85 5 90 8" stroke="#ff4d4d" stroke-width="2" stroke-linecap="round" class="antenna"/>
+                <circle cx="45" cy="35" r="6" fill="#050810" class="eye"/>
+                <circle cx="75" cy="35" r="6" fill="#050810" class="eye"/>
+                <circle cx="46" cy="34" r="2" fill="#00e5cc" class="eye-glow"/>
+                <circle cx="76" cy="34" r="2" fill="#00e5cc" class="eye-glow"/>
+                <defs><linearGradient id="lg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ff4d4d"/><stop offset="100%" stop-color="#991b1b"/></linearGradient></defs>
+            </svg>
+        </div>
+        <h1><span class="title-main">OpenClaw</span></h1>
+        <p class="tagline">The AI that actually does things</p>
+    </div>
+    <div class="form-container">
+        <div class="form-group">
+            <label>粘贴访问链接</label>
+            <input id="url" placeholder="http://127.0.0.1:18789/?token=a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6" />
+        </div>
+        <div class="btn-wrap">
+            <button class="submit-btn" onclick="save()">
+                <span class="btn-badge">Connect</span>
+                <span class="btn-title">连接到 OpenClaw</span>
+                <span class="btn-arrow">→</span>
+            </button>
+        </div>
+    </div>
+</div>
+<script>
+    const {ipcRenderer} = require('electron');
+    function save() {
+        try {
+            const u = new URL(document.getElementById('url').value.trim());
+            const token = u.searchParams.get('token') || '';
+            const host = u.origin;
+            ipcRenderer.send('save-config', {host, token});
+        } catch(e) { alert('链接格式不正确'); }
+    }
+</script>
+</body>
+</html>

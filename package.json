@@ -11,17 +11,20 @@
   },
   "build": {
     "appId": "com.openclaw.app",
-    "productName": "OpenClaw",
+    "productName": "OpenClaw-Desktop",
     "mac": {
       "target": "dmg",
-      "artifactName": "${productName}-Desktop-${version}-${arch}.${ext}"
+      "artifactName": "${productName}-${version}-${arch}.${ext}",
+      "icon": "icon.icns"
     },
     "win": {
       "target": "portable",
-      "artifactName": "${productName}-Desktop-${version}.${ext}"
+      "artifactName": "${productName}-${version}.${ext}",
+      "icon": "icon.ico"
     },
     "files": [
       "main.js",
+      "settings.html",
       "package.json"
     ],
     "generateUpdatesFilesForAllChannels": false,

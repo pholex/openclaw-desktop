@@ -28,36 +28,11 @@ function getTargetURL(config) {
 function openSettings(onSaved) {
   if (settingsWindow) { settingsWindow.focus(); return; }
   settingsWindow = new BrowserWindow({
-    width: 480, height: 300, resizable: false,
-    title: "设置", parent: mainWindow, modal: !!mainWindow,
+    width: 680, height: 520, resizable: false,
+    title: "OpenClaw", parent: mainWindow, modal: !!mainWindow,
     webPreferences: { nodeIntegration: true, contextIsolation: false },
   });
-  const config = loadConfig();
-  const currentURL = config ? getTargetURL(config) : "";
-  settingsWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(`<!DOCTYPE html>
-<html><head><style>
-  body{font-family:system-ui;padding:24px;background:#f5f5f5}
-  label{display:block;margin:8px 0 4px;font-size:14px}
-  input{width:100%;padding:6px 8px;box-sizing:border-box;border:1px solid #ccc;border-radius:4px;font-size:14px}
-  button{margin-top:16px;padding:8px 24px;background:#007aff;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:14px}
-  .hint{font-size:12px;color:#888;margin-top:4px}
-</style></head><body>
-  <label>粘贴访问链接</label>
-  <input id="url" placeholder="http://host:port/?token=xxx" value="${currentURL}">
-  <div class="hint">例如: http://127.0.0.1:18789/?token=abc123</div>
-  <button onclick="save()">保存</button>
-  <script>
-    const {ipcRenderer}=require('electron');
-    function save(){
-      try{
-        const u=new URL(document.getElementById('url').value.trim());
-        const token=u.searchParams.get('token')||'';
-        const host=u.origin;
-        ipcRenderer.send('save-config',{host,token});
-      }catch(e){alert('链接格式不正确')}
-    }
-  </script>
-</body></html>`)}`);
+  settingsWindow.loadFile(path.join(__dirname, "settings.html"));;
   settingsWindow.on("closed", () => { settingsWindow = null; });
   ipcMain.once("save-config", (_, config) => {
     saveConfig(config);
