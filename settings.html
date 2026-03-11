@@ -86,6 +86,8 @@
                     <div class="form-group"><label>龙虾1 链接</label><div class="row"><input id="url0adv" placeholder="http://host:port/?token=..." /><button class="row-btn" id="btn0" onclick="connectSlot(0)" disabled>连接</button></div></div>
                     <div class="form-group"><label>龙虾2 链接</label><div class="row"><input id="url1" placeholder="http://host:port/?token=..." /><button class="row-btn" id="btn1" onclick="connectSlot(1)" disabled>连接</button></div></div>
                     <div class="form-group"><label>龙虾3 链接</label><div class="row"><input id="url2" placeholder="http://host:port/?token=..." /><button class="row-btn" id="btn2" onclick="connectSlot(2)" disabled>连接</button></div></div>
+                    <div class="form-group"><label>龙虾4 链接</label><div class="row"><input id="url3" placeholder="http://host:port/?token=..." /><button class="row-btn" id="btn3" onclick="connectSlot(3)" disabled>连接</button></div></div>
+                    <div class="form-group"><label>龙虾5 链接</label><div class="row"><input id="url4" placeholder="http://host:port/?token=..." /><button class="row-btn" id="btn4" onclick="connectSlot(4)" disabled>连接</button></div></div>
                 </div>
                 <div class="btn-wrap" id="simpleBtnWrap">
                     <button class="submit-btn" onclick="save()">
@@ -129,7 +131,7 @@
     }
 
     function updateSlotTabs() {
-        for (let i = 0; i < 3; i++) {
+        for (let i = 0; i < 5; i++) {
             const val = getInput(i).value.trim();
             const btn = document.getElementById('btn' + i);
             if (btn) btn.disabled = !val;
@@ -138,7 +140,7 @@
 
     function buildSlots() {
         const slots = [];
-        for (let i = 0; i < 3; i++) {
+        for (let i = 0; i < 5; i++) {
             const v = getInput(i).value.trim();
             slots.push(v ? parseURL(v) : null);
         }
@@ -166,7 +168,7 @@
         config.slots.forEach((s, i) => {
             const url = getURLFromSlot(s);
             if (i === 0) { document.getElementById('url0').value = url; document.getElementById('url0adv').value = url; }
-            else if (i < 3) document.getElementById('url' + i).value = url;
+            else if (i < 5) document.getElementById('url' + i).value = url;
         });
         const hasMulti = config.slots.filter(s => s && s.host).length > 1;
         if (hasMulti) { advanced = true; document.getElementById('slotInputs').classList.add('visible'); document.getElementById('advIcon').style.transform = 'rotate(90deg)'; document.getElementById('simpleGroup').style.display = 'none'; document.getElementById('simpleBtnWrap').style.display = 'none'; }

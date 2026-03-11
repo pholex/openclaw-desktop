@@ -1,6 +1,6 @@
 {
   "name": "openclaw-desktop",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "OpenClaw Desktop App",
   "author": "OpenClaw",
   "main": "main.js",
@@ -32,7 +32,6 @@
     ],
     "generateUpdatesFilesForAllChannels": false,
     "publish": null
-
   },
   "devDependencies": {
     "electron": "^35.7.0",

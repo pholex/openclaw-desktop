@@ -114,7 +114,11 @@ function injectSwitcher() {
   if (!config || !config.slots) return;
   const validSlots = config.slots.map((s, i) => (s && s.host) ? i : -1).filter(i => i >= 0);
   if (validSlots.length < 2) return;
-  const btnsJson = JSON.stringify(validSlots.map(i => ({ idx: i, active: i === config.active })));
+  const btnsJson = JSON.stringify(validSlots.map(i => {
+    let ip = '';
+    try { ip = new URL(config.slots[i].host).hostname; } catch(e) {}
+    return { idx: i, active: i === config.active, ip };
+  }));
   // Inject via preload context using webContents IPC
   mainWindow.webContents.send('inject-switcher', btnsJson);
 }

@@ -10,7 +10,7 @@ ipcRenderer.on("inject-switcher", (_, btnsJson) => {
   if (document.getElementById("oc-switcher")) return;
   const items = JSON.parse(btnsJson);
   const s = document.createElement("style");
-  s.textContent = ".oc-btn{width:32px;height:32px;border-radius:50%;border:2px solid #ddd;background:#fff;color:#666;cursor:pointer;font-size:11px;font-weight:700;transition:all .2s;}.oc-btn:hover{transform:scale(1.15);border-color:#ff4d4d;color:#ff4d4d;box-shadow:0 0 8px rgba(255,77,77,0.3);}.oc-btn.active{border-color:#ff4d4d;background:#ff4d4d;color:#fff;}.oc-btn.active:hover{transform:scale(1.15);box-shadow:0 0 12px rgba(255,77,77,0.5);}";
+  s.textContent = ".oc-btn{position:relative;width:32px;height:32px;border-radius:50%;border:2px solid #ddd;background:#fff;color:#666;cursor:pointer;font-size:11px;font-weight:700;transition:all .2s;}.oc-btn:hover{transform:scale(1.15);border-color:#ff4d4d;color:#ff4d4d;box-shadow:0 0 8px rgba(255,77,77,0.3);}.oc-btn.active{border-color:#ff4d4d;background:#ff4d4d;color:#fff;}.oc-btn.active:hover{transform:scale(1.15);box-shadow:0 0 12px rgba(255,77,77,0.5);}.oc-ip{position:absolute;right:40px;top:50%;transform:translateY(-50%);background:rgba(0,0,0,0.75);color:#fff;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:500;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .2s;}.oc-btn:hover .oc-ip{opacity:1;}";
   document.head.appendChild(s);
   const d = document.createElement("div");
   d.id = "oc-switcher";
@@ -19,6 +19,7 @@ ipcRenderer.on("inject-switcher", (_, btnsJson) => {
     const b = document.createElement("button");
     b.className = "oc-btn" + (item.active ? " active" : "");
     b.textContent = item.idx + 1;
+    if (item.ip) { const t = document.createElement("span"); t.className = "oc-ip"; t.textContent = item.ip; b.appendChild(t); }
     b.addEventListener("click", () => {
       document.querySelectorAll(".oc-btn").forEach(x => x.classList.remove("active"));
       b.classList.add("active");
