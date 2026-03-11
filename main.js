@@ -7,6 +7,7 @@ let willQuitApp = false;
 let loaded = false;
 
 const CONFIG_PATH = path.join(app.getPath("userData"), "config.json");
+const PRELOAD_PATH = path.join(__dirname, "preload.js");
 
 function loadConfig() {
   try {
@@ -33,14 +34,13 @@ function showSettings() {
 }
 
 function connectToService(config) {
-  const url = getTargetURL(config);
-  mainWindow.loadURL(url);
+  mainWindow.loadURL(getTargetURL(config));
 }
 
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1400, height: 900, title: "OpenClaw-Desktop",
-    webPreferences: { nodeIntegration: true, contextIsolation: false },
+    webPreferences: { nodeIntegration: false, contextIsolation: true, preload: PRELOAD_PATH },
   });
   mainWindow.on("page-title-updated", (e) => e.preventDefault());
 
@@ -49,8 +49,9 @@ function createWindow() {
     if (!url.startsWith("file://")) loaded = true;
   });
 
-  mainWindow.webContents.on("did-fail-load", () => {
-    showSettings();
+  mainWindow.webContents.on("did-fail-load", (_e, code, _desc, url) => {
+    if (code === -3) return; // ignore aborted loads
+    if (url && !url.startsWith("file://")) showSettings();
   });
 
   const config = loadConfig();
@@ -62,7 +63,7 @@ function createWindow() {
 
   mainWindow.on("close", (e) => {
     if (!willQuitApp) {
-      if (!loaded) return; // 设置页面直接关闭
+      if (!loaded) return;
       e.preventDefault();
       dialog.showMessageBox(mainWindow, {
         type: "question", buttons: ["确认", "取消"],

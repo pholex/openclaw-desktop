@@ -1,7 +1,8 @@
 {
   "name": "openclaw-desktop",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "OpenClaw Desktop App",
+  "author": "OpenClaw",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
@@ -25,6 +26,7 @@
     },
     "files": [
       "main.js",
+      "preload.js",
       "settings.html",
       "package.json"
     ],
