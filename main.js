@@ -11,7 +11,11 @@ const PRELOAD_PATH = path.join(__dirname, "preload.js");
 
 function loadConfig() {
   try {
-    if (fs.existsSync(CONFIG_PATH)) return JSON.parse(fs.readFileSync(CONFIG_PATH, "utf8"));
+    if (fs.existsSync(CONFIG_PATH)) {
+      const data = JSON.parse(fs.readFileSync(CONFIG_PATH, "utf8"));
+      if (data.host) return { slots: [{ host: data.host, token: data.token }], active: 0 };
+      return data;
+    }
   } catch (e) {}
   return null;
 }
@@ -20,8 +24,13 @@ function saveConfig(config) {
   fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
 }
 
-function getTargetURL(config) {
-  return `${config.host}/?token=${config.token}`;
+function getTargetURL(slot) {
+  return `${slot.host}/?token=${slot.token}`;
+}
+
+function getActiveURL(config) {
+  const slot = config.slots[config.active];
+  return slot && slot.host ? getTargetURL(slot) : null;
 }
 
 function showSettings() {
@@ -29,12 +38,14 @@ function showSettings() {
   mainWindow.loadFile(path.join(__dirname, "settings.html"));
   mainWindow.webContents.once("did-finish-load", () => {
     const config = loadConfig();
-    if (config) mainWindow.webContents.send("load-config", getTargetURL(config));
+    if (config) mainWindow.webContents.send("load-config", config);
   });
 }
 
 function connectToService(config) {
-  mainWindow.loadURL(getTargetURL(config));
+  const url = getActiveURL(config);
+  if (url) mainWindow.loadURL(url);
+  else showSettings();
 }
 
 function createWindow() {
@@ -46,16 +57,19 @@ function createWindow() {
 
   mainWindow.webContents.on("did-finish-load", () => {
     const url = mainWindow.webContents.getURL();
-    if (!url.startsWith("file://")) loaded = true;
+    if (!url.startsWith("file://")) {
+      loaded = true;
+      injectSwitcher();
+    }
   });
 
   mainWindow.webContents.on("did-fail-load", (_e, code, _desc, url) => {
-    if (code === -3) return; // ignore aborted loads
+    if (code === -3) return;
     if (url && !url.startsWith("file://")) showSettings();
   });
 
   const config = loadConfig();
-  if (config) {
+  if (config && getActiveURL(config)) {
     connectToService(config);
   } else {
     showSettings();
@@ -74,6 +88,10 @@ function createWindow() {
   });
   mainWindow.on("closed", () => { mainWindow = null; });
 
+  rebuildMenu();
+}
+
+function rebuildMenu() {
   const menu = Menu.buildFromTemplate([{
     label: "文件", submenu: [
       { label: "设置", accelerator: "CmdOrCtrl+,", click: () => showSettings() },
@@ -91,9 +109,30 @@ function createWindow() {
   Menu.setApplicationMenu(menu);
 }
 
+function injectSwitcher() {
+  const config = loadConfig();
+  if (!config || !config.slots) return;
+  const validSlots = config.slots.map((s, i) => (s && s.host) ? i : -1).filter(i => i >= 0);
+  if (validSlots.length < 2) return;
+  const btnsJson = JSON.stringify(validSlots.map(i => ({ idx: i, active: i === config.active })));
+  // Inject via preload context using webContents IPC
+  mainWindow.webContents.send('inject-switcher', btnsJson);
+}
+
+ipcMain.on("switch-slot", (_, i) => {
+  const config = loadConfig();
+  if (config && config.slots[i] && config.slots[i].host) {
+    config.active = i;
+    saveConfig(config);
+    connectToService(config);
+    rebuildMenu();
+  }
+});
+
 ipcMain.on("save-config", (_, config) => {
   saveConfig(config);
   connectToService(config);
+  rebuildMenu();
 });
 
 app.whenReady().then(createWindow);
