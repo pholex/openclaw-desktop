@@ -15,13 +15,13 @@
     "productName": "OpenClaw-Desktop",
     "mac": {
       "target": "dmg",
-      "artifactName": "${productName}-${version}-${arch}.${ext}",
+      "artifactName": "${productName}-${arch}.${ext}",
       "icon": "icon.icns",
       "notarize": true
     },
     "win": {
       "target": "portable",
-      "artifactName": "${productName}-${version}.${ext}",
+      "artifactName": "${productName}.${ext}",
       "icon": "icon.ico"
     },
     "files": [
