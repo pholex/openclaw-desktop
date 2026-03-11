@@ -1,5 +1,5 @@
 const { contextBridge, ipcRenderer } = require("electron");
-const VALID_SEND = ["save-config", "switch-slot"];
+const VALID_SEND = ["save-config", "connect-slot", "switch-slot"];
 const VALID_ON = ["load-config"];
 contextBridge.exposeInMainWorld("api", {
   send: (channel, data) => { if (VALID_SEND.includes(channel)) ipcRenderer.send(channel, data); },

@@ -16,7 +16,7 @@
         .main { flex: 1; display: flex; align-items: center; justify-content: center; }
         .page { display: none; width: 100%; height: 100%; }
         .page.active { display: flex; align-items: stretch; justify-content: center; overflow-y: auto; }
-        .container { max-width: 800px; width: 100%; background: #fff; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); overflow: hidden; margin: 20px; align-self: center; }
+        .container { max-width: 860px; width: 100%; background: #fff; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); overflow: hidden; margin: 20px; align-self: center; }
         .header { padding: 30px; text-align: center; }
         .lobster-wrap { display: block; width: 72px; height: 72px; margin: 0 auto 14px; animation: float 4s ease-in-out infinite; }
         .lobster-wrap svg { width: 100%; height: 100%; filter: drop-shadow(0 0 20px rgba(255,77,77,0.4)); }
@@ -49,14 +49,6 @@
         .row-btn { flex-shrink: 0; padding: 10px 16px; border-radius: 12px; border: 1px solid #ddd; background: #fff; cursor: pointer; font-size: 0.8rem; font-weight: 600; color: #ff4d4d; transition: all 0.2s; white-space: nowrap; }
         .row-btn:hover { border-color: #ff4d4d; background: #fff5f5; }
         .row-btn:disabled { color: #ccc; border-color: #eee; background: #fafafa; cursor: not-allowed; }
-        .advanced-toggle { text-align: center; margin-bottom: 16px; }
-        .advanced-toggle label { cursor: pointer; color: #999; font-size: 0.85em; font-weight: 400; }
-        .advanced-toggle label:hover { color: #ff4d4d; }
-        .advanced-toggle .icon { display: inline-block; transition: transform 0.2s; font-size: 0.7em; margin-right: 4px; }
-        .slot-inputs { display: none; margin-bottom: 16px; }
-        .slot-inputs.visible { display: block; }
-        .slot-inputs .form-group { margin-bottom: 12px; }
-        .slot-inputs .form-group label { font-size: 0.85em; color: #666; }
     </style>
 </head>
 <body>
@@ -75,24 +67,24 @@
                 <p class="tagline">The AI that actually does things</p>
             </div>
             <div class="form-container">
-                <div class="form-group" id="simpleGroup">
-                    <label>粘贴访问链接</label>
-                    <input id="url0" placeholder="http://127.0.0.1:18789/?token=a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6" />
+                <div id="simpleGroup">
+                    <div class="form-group">
+                        <label>粘贴访问链接</label>
+                        <input id="url0" placeholder="http://127.0.0.1:18789/?token=a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6" />
+                    </div>
+                    <div style="text-align:center;margin:12px 0;"><button class="row-btn" onclick="userAddSlot()" id="addSlotBtn">+</button></div>
+                    <div class="btn-wrap">
+                        <button class="submit-btn" onclick="connectSimple()">
+                            <span class="btn-badge">Connect</span>
+                            <span class="btn-title">连接到 OpenClaw</span>
+                            <span class="btn-arrow">→</span>
+                        </button>
+                    </div>
                 </div>
-                <div class="advanced-toggle" onclick="toggleAdvanced()">
-                    <label><span class="icon" id="advIcon">▶</span> 高级选项</label>
-                </div>
-                <div id="slotInputs" class="slot-inputs">
+                <div id="multiGroup" style="display:none;">
                     <div class="form-group"><label>代理地址 (可选)</label><input id="proxy" placeholder="http://127.0.0.1:8080 或 socks5://127.0.0.1:1080" /></div>
                     <div id="slotList"></div>
-                    <div id="addSlotWrap" style="text-align:center;margin-top:8px;"><button class="row-btn" onclick="addSlot()" id="addSlotBtn">+ 添加龙虾</button></div>
-                </div>
-                <div class="btn-wrap" id="simpleBtnWrap">
-                    <button class="submit-btn" onclick="save()">
-                        <span class="btn-badge">Connect</span>
-                        <span class="btn-title">连接到 OpenClaw</span>
-                        <span class="btn-arrow">→</span>
-                    </button>
+                    <div style="text-align:center;margin-top:12px;"><button class="row-btn" onclick="userAddSlot()" id="addSlotBtnMulti">+</button></div>
                 </div>
             </div>
         </div>
@@ -100,98 +92,140 @@
 </div>
 <script>
     const MAX_SLOTS = 8;
-    const DEFAULT_SLOTS = 2;
-    let advanced = false;
     let slotCount = 0;
-
-    function addSlot(value) {
-        if (slotCount >= MAX_SLOTS) return;
-        const i = slotCount++;
-        const g = document.createElement('div');
-        g.className = 'form-group';
-        g.innerHTML = '<label>龙虾' + (i + 1) + ' 链接</label><div class="row"><input id="url' + i + 'adv" placeholder="http://host:port/?token=..." /><button class="row-btn" id="btn' + i + '" onclick="connectSlot(' + i + ')" disabled>连接</button></div>';
-        document.getElementById('slotList').appendChild(g);
-        const inp = document.getElementById('url' + i + 'adv');
-        if (value) inp.value = value;
-        inp.addEventListener('input', updateSlotBtns);
-        if (slotCount >= MAX_SLOTS) document.getElementById('addSlotBtn').style.display = 'none';
-        updateSlotBtns();
-    }
-
-    function toggleAdvanced() {
-        advanced = !advanced;
-        document.getElementById('slotInputs').classList.toggle('visible', advanced);
-        document.getElementById('advIcon').style.transform = advanced ? 'rotate(90deg)' : '';
-        document.getElementById('simpleGroup').style.display = advanced ? 'none' : '';
-        document.getElementById('simpleBtnWrap').style.display = advanced ? 'none' : '';
-        if (advanced) {
-            if (slotCount === 0) { for (let i = 0; i < DEFAULT_SLOTS; i++) addSlot(i === 0 ? document.getElementById('url0').value : ''); }
-            else document.getElementById('url0adv').value = document.getElementById('url0').value;
-        } else {
-            document.getElementById('url0').value = (document.getElementById('url0adv') || {}).value || '';
-        }
-        updateSlotBtns();
-    }
+    let loading = false;
 
     function parseURL(val) {
         try { const u = new URL(val.trim()); return { host: u.origin, token: u.searchParams.get('token') || '' }; }
         catch(e) { return null; }
     }
 
-    function updateSlotBtns() {
+    function getURLFromSlot(slot) {
+        return slot && slot.host ? slot.host + '/?token=' + slot.token : '';
+    }
+
+    function isMulti() { return slotCount > 0; }
+
+    function showMulti() {
+        document.getElementById('simpleGroup').style.display = 'none';
+        document.getElementById('multiGroup').style.display = '';
+    }
+
+    function showSimple() {
+        document.getElementById('simpleGroup').style.display = '';
+        document.getElementById('multiGroup').style.display = 'none';
+    }
+
+    function buildConfig() {
+        const slots = [];
+        if (isMulti()) {
+            for (let i = 0; i < slotCount; i++) {
+                const v = (document.getElementById('slot' + i) || {}).value || '';
+                slots.push(v.trim() ? parseURL(v) : null);
+            }
+        } else {
+            const v = document.getElementById('url0').value.trim();
+            slots.push(v ? parseURL(v) : null);
+        }
+        return { slots, proxy: isMulti() ? (document.getElementById('proxy').value.trim() || '') : undefined };
+    }
+
+    function autoSave() {
+        if (!loading) window.api.send('save-config', buildConfig());
+    }
+
+    function addSlot(value) {
+        if (slotCount >= MAX_SLOTS) return;
+        if (!isMulti()) showMulti();
+        const i = slotCount++;
+        const g = document.createElement('div');
+        g.className = 'form-group';
+        g.id = 'slotGroup' + i;
+        g.innerHTML = '<label>龙虾' + (i + 1) + ' 链接</label><div class="row"><input id="slot' + i + '" placeholder="http://host:port/?token=..." />'
+            + '<button class="row-btn" id="btn' + i + '" onclick="connectSlot(' + i + ')" disabled>连接</button>'
+            + '<button class="row-btn" onclick="removeSlot(' + i + ')" style="color:#999;">✕</button>'
+            + '</div>';
+        document.getElementById('slotList').appendChild(g);
+        const inp = document.getElementById('slot' + i);
+        if (value) inp.value = value;
+        inp.addEventListener('input', () => { updateBtns(); autoSave(); });
+        if (slotCount >= MAX_SLOTS) {
+            var b = document.getElementById('addSlotBtn'); if (b) b.style.display = 'none';
+            b = document.getElementById('addSlotBtnMulti'); if (b) b.style.display = 'none';
+        }
+        updateBtns();
+    }
+
+    function userAddSlot() {
+        if (!isMulti()) {
+            addSlot(document.getElementById('url0').value.trim());
+            addSlot('');
+        } else {
+            addSlot('');
+        }
+        autoSave();
+    }
+
+    function removeSlot(i) {
+        const g = document.getElementById('slotGroup' + i);
+        if (g) g.remove();
+        const remaining = [];
+        document.querySelectorAll('#slotList .form-group').forEach(el => {
+            const inp = el.querySelector('input');
+            if (inp) remaining.push(inp.value);
+        });
+        document.getElementById('slotList').innerHTML = '';
+        slotCount = 0;
+        if (remaining.length <= 1) {
+            document.getElementById('url0').value = remaining[0] || '';
+            showSimple();
+            autoSave();
+            return;
+        }
+        remaining.forEach(v => addSlot(v));
+        document.getElementById('addSlotBtnMulti').style.display = slotCount >= MAX_SLOTS ? 'none' : '';
+        autoSave();
+    }
+
+    function updateBtns() {
         for (let i = 0; i < slotCount; i++) {
-            const inp = document.getElementById('url' + i + 'adv');
+            const inp = document.getElementById('slot' + i);
             const btn = document.getElementById('btn' + i);
             if (inp && btn) btn.disabled = !inp.value.trim();
         }
     }
 
-    function buildSlots() {
-        const slots = [];
-        for (let i = 0; i < slotCount; i++) {
-            const v = (document.getElementById('url' + i + 'adv') || {}).value || '';
-            slots.push(v.trim() ? parseURL(v) : null);
-        }
-        return slots;
-    }
-
-    function save() {
+    function connectSimple() {
         const v = document.getElementById('url0').value.trim();
-        const parsed = v ? parseURL(v) : null;
-        if (!parsed) { alert('链接格式不正确'); return; }
-        window.api.send('save-config', { slots: [parsed], active: 0, proxy: '' });
+        if (!v || !parseURL(v)) { alert('链接格式不正确'); return; }
+        autoSave();
+        window.api.send('connect-slot', 0);
     }
 
     function connectSlot(i) {
-        const slots = buildSlots();
-        if (!slots[i]) { alert('该链接未配置或格式不正确'); return; }
-        window.api.send('save-config', { slots, active: i, proxy: document.getElementById('proxy').value.trim() });
-    }
-
-    function getURLFromSlot(slot) {
-        return slot && slot.host ? slot.host + '/?token=' + slot.token : '';
+        const inp = document.getElementById('slot' + i);
+        const v = inp ? inp.value.trim() : '';
+        if (!v || !parseURL(v)) { alert('该链接未配置或格式不正确'); return; }
+        autoSave();
+        window.api.send('connect-slot', i);
     }
 
     window.api.on('load-config', (config) => {
         if (!config || !config.slots) return;
+        loading = true;
         const urls = config.slots.map(s => getURLFromSlot(s));
-        if (urls[0]) document.getElementById('url0').value = urls[0];
-        const filled = config.slots.filter(s => s && s.host).length;
-        const needAdv = filled > 1 || !!config.proxy;
-        if (needAdv) {
-            advanced = true;
-            document.getElementById('slotInputs').classList.add('visible');
-            document.getElementById('advIcon').style.transform = 'rotate(90deg)';
-            document.getElementById('simpleGroup').style.display = 'none';
-            document.getElementById('simpleBtnWrap').style.display = 'none';
-            const count = Math.max(filled, DEFAULT_SLOTS);
-            for (let i = 0; i < count; i++) addSlot(urls[i] || '');
+        if (config.slots.length > 1) {
+            for (let i = 0; i < config.slots.length; i++) addSlot(urls[i] || '');
+        } else {
+            if (urls[0]) document.getElementById('url0').value = urls[0];
         }
         if (config.proxy) document.getElementById('proxy').value = config.proxy;
-        updateSlotBtns();
+        updateBtns();
+        loading = false;
     });
 
-    document.getElementById('url0').addEventListener('input', () => {});
+    document.getElementById('url0').addEventListener('input', autoSave);
+    document.getElementById('proxy').addEventListener('input', autoSave);
 </script>
 </body>
 </html>

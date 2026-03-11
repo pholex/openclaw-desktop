@@ -139,6 +139,16 @@ ipcMain.on("switch-slot", (_, i) => {
 });
 
 ipcMain.on("save-config", (_, config) => {
+  const prev = loadConfig();
+  if (prev && prev.active != null && config.active == null) config.active = prev.active;
+  if (config.proxy === undefined) config.proxy = (prev && prev.proxy) || '';
+  saveConfig(config);
+});
+
+ipcMain.on("connect-slot", (_, i) => {
+  const config = loadConfig();
+  if (!config || !config.slots[i] || !config.slots[i].host) { showSettings(); return; }
+  config.active = i;
   saveConfig(config);
   connectToService(config);
   rebuildMenu();
