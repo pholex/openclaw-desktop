@@ -42,10 +42,15 @@ function showSettings() {
   });
 }
 
-function connectToService(config) {
+async function connectToService(config) {
   const url = getActiveURL(config);
-  if (url) mainWindow.loadURL(url);
-  else showSettings();
+  if (!url) { showSettings(); return; }
+  let hostname = '';
+  try { hostname = new URL(url).hostname; } catch(e) {}
+  const isLocal = hostname === '127.0.0.1' || hostname === 'localhost';
+  const proxy = (!isLocal && config.proxy) ? config.proxy : 'direct://';
+  await mainWindow.webContents.session.setProxy({ proxyRules: proxy });
+  mainWindow.loadURL(url);
 }
 
 function createWindow() {

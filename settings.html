@@ -15,8 +15,8 @@
         .sidebar .tab svg { width: 20px; height: 20px; }
         .main { flex: 1; display: flex; align-items: center; justify-content: center; }
         .page { display: none; width: 100%; height: 100%; }
-        .page.active { display: flex; align-items: center; justify-content: center; }
-        .container { max-width: 720px; width: 100%; background: #fff; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); overflow: hidden; margin: 20px; }
+        .page.active { display: flex; align-items: stretch; justify-content: center; overflow-y: auto; }
+        .container { max-width: 800px; width: 100%; background: #fff; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); overflow: hidden; margin: 20px; align-self: center; }
         .header { padding: 30px; text-align: center; }
         .lobster-wrap { display: block; width: 72px; height: 72px; margin: 0 auto 14px; animation: float 4s ease-in-out infinite; }
         .lobster-wrap svg { width: 100%; height: 100%; filter: drop-shadow(0 0 20px rgba(255,77,77,0.4)); }
@@ -83,11 +83,9 @@
                     <label><span class="icon" id="advIcon">▶</span> 高级选项</label>
                 </div>
                 <div id="slotInputs" class="slot-inputs">
-                    <div class="form-group"><label>龙虾1 链接</label><div class="row"><input id="url0adv" placeholder="http://host:port/?token=..." /><button class="row-btn" id="btn0" onclick="connectSlot(0)" disabled>连接</button></div></div>
-                    <div class="form-group"><label>龙虾2 链接</label><div class="row"><input id="url1" placeholder="http://host:port/?token=..." /><button class="row-btn" id="btn1" onclick="connectSlot(1)" disabled>连接</button></div></div>
-                    <div class="form-group"><label>龙虾3 链接</label><div class="row"><input id="url2" placeholder="http://host:port/?token=..." /><button class="row-btn" id="btn2" onclick="connectSlot(2)" disabled>连接</button></div></div>
-                    <div class="form-group"><label>龙虾4 链接</label><div class="row"><input id="url3" placeholder="http://host:port/?token=..." /><button class="row-btn" id="btn3" onclick="connectSlot(3)" disabled>连接</button></div></div>
-                    <div class="form-group"><label>龙虾5 链接</label><div class="row"><input id="url4" placeholder="http://host:port/?token=..." /><button class="row-btn" id="btn4" onclick="connectSlot(4)" disabled>连接</button></div></div>
+                    <div class="form-group"><label>代理地址 (可选)</label><input id="proxy" placeholder="http://127.0.0.1:8080 或 socks5://127.0.0.1:1080" /></div>
+                    <div id="slotList"></div>
+                    <div id="addSlotWrap" style="text-align:center;margin-top:8px;"><button class="row-btn" onclick="addSlot()" id="addSlotBtn">+ 添加龙虾</button></div>
                 </div>
                 <div class="btn-wrap" id="simpleBtnWrap">
                     <button class="submit-btn" onclick="save()">
@@ -101,7 +99,24 @@
     </div>
 </div>
 <script>
+    const MAX_SLOTS = 8;
+    const DEFAULT_SLOTS = 2;
     let advanced = false;
+    let slotCount = 0;
+
+    function addSlot(value) {
+        if (slotCount >= MAX_SLOTS) return;
+        const i = slotCount++;
+        const g = document.createElement('div');
+        g.className = 'form-group';
+        g.innerHTML = '<label>龙虾' + (i + 1) + ' 链接</label><div class="row"><input id="url' + i + 'adv" placeholder="http://host:port/?token=..." /><button class="row-btn" id="btn' + i + '" onclick="connectSlot(' + i + ')" disabled>连接</button></div>';
+        document.getElementById('slotList').appendChild(g);
+        const inp = document.getElementById('url' + i + 'adv');
+        if (value) inp.value = value;
+        inp.addEventListener('input', updateSlotBtns);
+        if (slotCount >= MAX_SLOTS) document.getElementById('addSlotBtn').style.display = 'none';
+        updateSlotBtns();
+    }
 
     function toggleAdvanced() {
         advanced = !advanced;
@@ -110,72 +125,73 @@
         document.getElementById('simpleGroup').style.display = advanced ? 'none' : '';
         document.getElementById('simpleBtnWrap').style.display = advanced ? 'none' : '';
         if (advanced) {
-            document.getElementById('url0adv').value = document.getElementById('url0').value;
+            if (slotCount === 0) { for (let i = 0; i < DEFAULT_SLOTS; i++) addSlot(i === 0 ? document.getElementById('url0').value : ''); }
+            else document.getElementById('url0adv').value = document.getElementById('url0').value;
         } else {
-            document.getElementById('url0').value = document.getElementById('url0adv').value;
+            document.getElementById('url0').value = (document.getElementById('url0adv') || {}).value || '';
         }
-        updateSlotTabs();
+        updateSlotBtns();
     }
 
     function parseURL(val) {
-        try {
-            const u = new URL(val.trim());
-            return { host: u.origin, token: u.searchParams.get('token') || '' };
-        } catch(e) { return null; }
+        try { const u = new URL(val.trim()); return { host: u.origin, token: u.searchParams.get('token') || '' }; }
+        catch(e) { return null; }
     }
 
-    function getInput(i) {
-        if (i === 0 && advanced) return document.getElementById('url0adv');
-        if (i === 0) return document.getElementById('url0');
-        return document.getElementById('url' + i);
-    }
-
-    function updateSlotTabs() {
-        for (let i = 0; i < 5; i++) {
-            const val = getInput(i).value.trim();
+    function updateSlotBtns() {
+        for (let i = 0; i < slotCount; i++) {
+            const inp = document.getElementById('url' + i + 'adv');
             const btn = document.getElementById('btn' + i);
-            if (btn) btn.disabled = !val;
+            if (inp && btn) btn.disabled = !inp.value.trim();
         }
     }
 
     function buildSlots() {
         const slots = [];
-        for (let i = 0; i < 5; i++) {
-            const v = getInput(i).value.trim();
-            slots.push(v ? parseURL(v) : null);
+        for (let i = 0; i < slotCount; i++) {
+            const v = (document.getElementById('url' + i + 'adv') || {}).value || '';
+            slots.push(v.trim() ? parseURL(v) : null);
         }
         return slots;
     }
 
     function save() {
-        const slots = buildSlots();
-        if (!slots[0]) { alert('链接格式不正确'); return; }
-        window.api.send('save-config', { slots, active: 0 });
+        const v = document.getElementById('url0').value.trim();
+        const parsed = v ? parseURL(v) : null;
+        if (!parsed) { alert('链接格式不正确'); return; }
+        window.api.send('save-config', { slots: [parsed], active: 0, proxy: '' });
     }
 
     function connectSlot(i) {
         const slots = buildSlots();
         if (!slots[i]) { alert('该链接未配置或格式不正确'); return; }
-        window.api.send('save-config', { slots, active: i });
+        window.api.send('save-config', { slots, active: i, proxy: document.getElementById('proxy').value.trim() });
     }
 
     function getURLFromSlot(slot) {
-        return slot && slot.host ? `${slot.host}/?token=${slot.token}` : '';
+        return slot && slot.host ? slot.host + '/?token=' + slot.token : '';
     }
 
     window.api.on('load-config', (config) => {
         if (!config || !config.slots) return;
-        config.slots.forEach((s, i) => {
-            const url = getURLFromSlot(s);
-            if (i === 0) { document.getElementById('url0').value = url; document.getElementById('url0adv').value = url; }
-            else if (i < 5) document.getElementById('url' + i).value = url;
-        });
-        const hasMulti = config.slots.filter(s => s && s.host).length > 1;
-        if (hasMulti) { advanced = true; document.getElementById('slotInputs').classList.add('visible'); document.getElementById('advIcon').style.transform = 'rotate(90deg)'; document.getElementById('simpleGroup').style.display = 'none'; document.getElementById('simpleBtnWrap').style.display = 'none'; }
-        updateSlotTabs();
+        const urls = config.slots.map(s => getURLFromSlot(s));
+        if (urls[0]) document.getElementById('url0').value = urls[0];
+        const filled = config.slots.filter(s => s && s.host).length;
+        const needAdv = filled > 1 || !!config.proxy;
+        if (needAdv) {
+            advanced = true;
+            document.getElementById('slotInputs').classList.add('visible');
+            document.getElementById('advIcon').style.transform = 'rotate(90deg)';
+            document.getElementById('simpleGroup').style.display = 'none';
+            document.getElementById('simpleBtnWrap').style.display = 'none';
+            const count = Math.max(filled, DEFAULT_SLOTS);
+            for (let i = 0; i < count; i++) addSlot(urls[i] || '');
+        }
+        if (config.proxy) document.getElementById('proxy').value = config.proxy;
+        updateSlotBtns();
     });
 
-    document.querySelectorAll('input').forEach(el => el.addEventListener('input', updateSlotTabs));
+    document.getElementById('url0').addEventListener('input', () => {});
 </script>
 </body>
 </html>
