@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu, dialog, ipcMain } = require("electron");
+const { app, BrowserWindow, Menu, dialog, ipcMain, clipboard } = require("electron");
 const fs = require("fs");
 const path = require("path");
 
@@ -45,11 +45,7 @@ function showSettings() {
 async function connectToService(config) {
   const url = getActiveURL(config);
   if (!url) { showSettings(); return; }
-  let hostname = '';
-  try { hostname = new URL(url).hostname; } catch(e) {}
-  const isLocal = hostname === '127.0.0.1' || hostname === 'localhost';
-  const proxy = (!isLocal && config.proxy) ? config.proxy : 'direct://';
-  await mainWindow.webContents.session.setProxy({ proxyRules: proxy });
+  await mainWindow.webContents.session.setProxy({ proxyRules: 'direct://' });
   mainWindow.loadURL(url);
 }
 
@@ -92,6 +88,17 @@ function createWindow() {
     }
   });
   mainWindow.on("closed", () => { mainWindow = null; });
+
+  mainWindow.webContents.on("context-menu", (_e, params) => {
+    if (params.isEditable) {
+      Menu.buildFromTemplate([
+        { label: "剪切", role: "cut" },
+        { label: "复制", role: "copy" },
+        { label: "粘贴", role: "paste" },
+        { label: "全选", role: "selectAll" },
+      ]).popup(mainWindow);
+    }
+  });
 
   rebuildMenu();
 }
@@ -141,7 +148,6 @@ ipcMain.on("switch-slot", (_, i) => {
 ipcMain.on("save-config", (_, config) => {
   const prev = loadConfig();
   if (prev && prev.active != null && config.active == null) config.active = prev.active;
-  if (config.proxy === undefined) config.proxy = (prev && prev.proxy) || '';
   saveConfig(config);
 });
 
