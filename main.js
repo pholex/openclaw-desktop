@@ -33,7 +33,12 @@ function getActiveURL(config) {
   return slot && slot.host ? getTargetURL(slot) : null;
 }
 
+function ensureWindow() {
+  if (!mainWindow) createWindow();
+}
+
 function showSettings() {
+  ensureWindow();
   loaded = false;
   mainWindow.loadFile(path.join(__dirname, "settings.html"));
   mainWindow.webContents.once("did-finish-load", () => {
