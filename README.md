@@ -1,6 +1,6 @@
 # OpenClaw Desktop
 
-基于 Electron 的桌面客户端，用于访问 OpenClaw Web 服务。
+原生的 OpenClaw 的 WebUI 界面，在浏览器中打开，带来诸多不便。本项目将入口转换成标准的桌面应用程序，用于访问 OpenClaw WebUI，同时支持配置多个 OpenClaw 实例。
 
 ## 功能
 
