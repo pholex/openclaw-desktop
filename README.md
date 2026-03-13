@@ -33,6 +33,14 @@ npm run build:all
 
 构建产物输出到 `dist/` 目录。
 
+## 截图
+
+### 设置页面
+![设置页面](settings.png)
+
+### 桌面主界面
+![桌面主界面](desktop.png)
+
 ## 使用说明
 
 1. 首次启动显示设置页面，粘贴访问链接后点击 Connect
