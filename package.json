@@ -11,7 +11,7 @@
     "build:all": "electron-builder --mac --win --publish never"
   },
   "build": {
-    "appId": "com.openclaw.app",
+    "appId": "cn.nexusdeep.openclaw-desktop",
     "productName": "OpenClaw-Desktop",
     "mac": {
       "target": "dmg",
