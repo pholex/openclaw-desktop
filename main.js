@@ -25,7 +25,8 @@ function saveConfig(config) {
 }
 
 function getTargetURL(slot) {
-  return `${slot.host}/?token=${slot.token}`;
+  const sep = slot.hashToken ? '/#token=' : '/?token=';
+  return `${slot.host}${sep}${slot.token}`;
 }
 
 function getActiveURL(config) {

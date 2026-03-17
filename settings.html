@@ -98,16 +98,20 @@
         try {
             const u = new URL(val.trim());
             let token = u.searchParams.get('token') || '';
+            let hashToken = false;
             if (!token && u.hash) {
                 const hp = new URLSearchParams(u.hash.slice(1));
                 token = hp.get('token') || '';
+                if (token) hashToken = true;
             }
-            return { host: u.origin, token };
+            return { host: u.origin, token, hashToken };
         } catch(e) { return null; }
     }
 
     function getURLFromSlot(slot) {
-        return slot && slot.host ? slot.host + '/?token=' + slot.token : '';
+        if (!slot || !slot.host) return '';
+        const sep = slot.hashToken ? '/#token=' : '/?token=';
+        return slot.host + sep + slot.token;
     }
 
     function isMulti() { return slotCount > 0; }
