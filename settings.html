@@ -95,8 +95,15 @@
     let loading = false;
 
     function parseURL(val) {
-        try { const u = new URL(val.trim()); return { host: u.origin, token: u.searchParams.get('token') || '' }; }
-        catch(e) { return null; }
+        try {
+            const u = new URL(val.trim());
+            let token = u.searchParams.get('token') || '';
+            if (!token && u.hash) {
+                const hp = new URLSearchParams(u.hash.slice(1));
+                token = hp.get('token') || '';
+            }
+            return { host: u.origin, token };
+        } catch(e) { return null; }
     }
 
     function getURLFromSlot(slot) {
