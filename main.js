@@ -42,7 +42,7 @@ function showSettings() {
   ensureWindow();
   loaded = false;
   mainWindow.loadFile(path.join(__dirname, "settings.html"));
-  mainWindow.webContents.once("did-finish-load", () => {
+  mainWindow.webContents.once("dom-ready", () => {
     const config = loadConfig();
     if (config) mainWindow.webContents.send("load-config", config);
   });

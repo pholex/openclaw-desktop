@@ -1,6 +1,6 @@
 {
   "name": "openclaw-desktop",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "OpenClaw Desktop App",
   "author": "OpenClaw",
   "main": "main.js",
