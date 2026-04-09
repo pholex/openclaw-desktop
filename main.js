@@ -40,12 +40,16 @@ function ensureWindow() {
 
 function showSettings() {
   ensureWindow();
+  if (mainWindow.__showingSettings) return;
+  mainWindow.__showingSettings = true;
   loaded = false;
   mainWindow.loadFile(path.join(__dirname, "settings.html"));
-  mainWindow.webContents.once("dom-ready", () => {
-    const config = loadConfig();
-    if (config) mainWindow.webContents.send("load-config", config);
-  });
+}
+
+function sendConfigToSettings() {
+  mainWindow.__showingSettings = false;
+  const config = loadConfig();
+  if (config) mainWindow.webContents.send("load-config", config);
 }
 
 async function connectToService(config) {
@@ -67,6 +71,8 @@ function createWindow() {
     if (!url.startsWith("file://")) {
       loaded = true;
       injectSwitcher();
+    } else if (mainWindow.__showingSettings) {
+      sendConfigToSettings();
     }
   });
 
